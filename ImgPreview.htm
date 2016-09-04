@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>图片预览</title>
+	<style>
+		*{
+			margin:0;
+			padding:0;
+		}
+		.container{
+			background-color: #ddd;
+			width:300px;
+			height:200px;
+			margin:100px 100px;
+			padding:10px;
+			position:relative;
+		}
+		.imgContainer{
+			width:300px;
+			height:200px;
+		}
+		.imgContainer img{
+			width:300px;
+			height: 200px;
+		}
+		.hidden{
+			/*opacity:0;
+			filter:alpha(opacity=0);*/
+			display:none;
+		}
+		.previewContainer{
+			position:absolute;
+			width:500px;
+			height:300px;
+			padding:10px;
+			outline:1px solid #ddd;
+			left:330px;
+			top:50px;
+			background-color: #ddd;
+			box-shadow: 0 0 5px inset;
+		}
+		.previewContainer img{
+			width:500px;
+			height:300px;
+		}
+		.clearfix:after,.clearfix:before{
+			content:'';
+			display:table;
+			clear:both;
+		}
+		.clearfix:after{
+			*zoom:1;
+		}
+	</style>
+</head>
+<body>
+	<div class="container clearfix" id="container">
+		<div class="imgContainer" id="imgContainer">
+			<a href="#">
+				<img src="images/1-1.jpg" id="smallImg" large-src="images/1-1.jpg" alt="小图查看">
+			</a>
+		</div>
+		<div class="previewContainer hidden" id="previewContainer">
+			<div class="secPreview">
+				<a href="#">
+					<img src="{{src}}" id="bigImg" alt="大图预览">
+				</a>
+			</div>
+		</div>
+	</div>
+	<script>
+		function getProp(ele,prop){
+			if(ele.currentStyle){
+				return ele.currentStyle[prop];
+			}else if(window.getComputedStyle){
+				return window.getComputedStyle(ele,false)[prop];
+			}else{
+				return ele.style[prop];
+			}
+		}
+		function getObj(id){
+			return typeof id === 'string'?document.getElementById(id):id;
+		}
+		function addEventHandler(ele,event,handler){
+			if(ele.addEventListener){
+				ele.addEventListener(event,handler,false);
+			}else if(ele.attachEvent){
+				ele.attachEvent("on"+event,handler);
+			}else{
+				ele["on"+event] = handler;
+			}
+		}
+		function removeEventHandler(ele,event,handler){
+			if(ele.removeEventListener){
+				ele.removeEventListener(event,handler,false);
+			}else if(ele.detachEvent){
+				ele.detachEvent("on"+event,handler);
+			}else{
+				ele["on"+event] = null;
+			}
+		}
+		function getEventPos(e){
+			if(e.pageX && e.pageY){
+				return {xpos:e.pageX,ypos:e.pageY};
+			}else{
+				var scollLeft = document.body.scollLeft? document.body.scollLeft:document.documentElement.scollLeft,
+				    scollTop = document.body.scollTop? document.body.scollTop:document.documentElement.scollTop;
+				return {xpos:e.clientX+scollLeft,ypos:e.clientY+scollTop};
+			}
+		}
+		function hasClass(ele,cls){
+			var flag = false;
+			if(ele.className.indexOf(cls)!=-1){
+				flag = true;
+			}
+			return flag;
+		}
+		function addClass(ele,cls){
+			if(!hasClass(ele,cls)){
+				ele.className +=' '+cls;
+			}
+		}
+		function removeClass(ele,cls){
+			if(hasClass(ele,cls)){
+				var reg = new RegExp('\s*'+cls+'\s*','g');
+				ele.className = ele.className.replace(reg,' ');
+			}else{
+				console.info("none"+cls+"?");
+			}
+		}
+		function showPreview(e){
+			e = e ? e:window.event;
+			var ePos = getEventPos(e);
+			var container = getObj("container"),
+				imgContainer = getObj("imgContainer"),
+				previewContainer = getObj("previewContainer"),
+				smallImg = getObj("smallImg"),
+				bigImg = getObj("bigImg");
+			if(parseInt(ePos.xpos)-parseInt(container.offsetLeft) <= parseInt(container.offsetWidth) && parseInt(ePos.ypos)-parseInt(container.offsetTop) <= parseInt(container.offsetHeight)){
+				previewContainer.style.left = parseInt(getProp(smallImg,'width')) + 30 + 'px';
+				previewContainer.style.top =  parseInt(ePos.ypos) - parseInt(container.offsetTop) + 'px';
+			}
+			var largeSrc = smallImg.getAttribute("large-src");
+			bigImg.src = largeSrc;
+			removeClass(previewContainer,'hidden');
+		}
+		function hiddenPreview(e){
+			var previewContainer = getObj("previewContainer"),
+				smallImg = getObj("smallImg"),
+				bigImg = getObj("bigImg");
+			addClass(previewContainer,'hidden');
+			bigImg.src = "{{src}}";
+		}
+		function init(){
+			var smallImg = getObj("smallImg"),
+				previewContainer = getObj("previewContainer");
+			addEventHandler(smallImg,'mouseover',showPreview);
+			addEventHandler(smallImg,'mouseout',hiddenPreview);
+			addEventHandler(previewContainer,'mouseover',showPreview);
+			addEventHandler(previewContainer,'mouseout',hiddenPreview);
+		}
+		window.onload = init;
+	</script>
+</body>
+</html>
